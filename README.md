@@ -1,4 +1,4 @@
-# SOFE3650 Operating Systems Labs
+# SOFE3950 Operating Systems Labs
 
 | Names            | Student ID    |
 | ---------------- | -------------:|
