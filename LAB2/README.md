@@ -1,20 +1,20 @@
-## Name
+# Name
 
     myshell - Command Line Interpreter
 
 
-## Synopsis
+# Synopsis
 
     myshell
 
 
-## Description
+# Description
 
     It is a command line interpreter which is the fundamental user interface to an operating
     system. This is a simple shell.
 
 
-      ### Internal Commands
+      Internal Commands
 
               cd <directory>      : Changes the current default directory to <directory>.
                                     If the <directory> argument is not present, it reports
@@ -39,7 +39,7 @@
 
 
 
-      ### Concepts of I/O Redirection
+      Concepts of I/O Redirection
 
               - Standard Input: The standard input stream typically carries data from a user to a program.
                               Programs that expect standard input usually receive input from a device,
@@ -54,7 +54,7 @@
 
 
 
-      ### Background Program Execution
+      Background Program Execution
 
               The shell does not have to wait for a background process to end before it can run more processes.
               Within the limit of the amount of memory available, you can enter many background commands one
@@ -62,7 +62,7 @@
 
 
 
-      ### Shell Environment
+      Shell Environment
 
               The shell environment contains shell=<pathname>/myshell where <pathname>/myshell is the full path
               for the shell executable (not a hardwired path back to your directory, but the one from which it was
