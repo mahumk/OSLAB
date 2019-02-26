@@ -1,4 +1,4 @@
-# SOFE3950 Operating Systems Labs
+# SOFE3950 Operating Systems Labs Group 11
 
 | Names            | Student ID    |
 | ---------------- | -------------:|
