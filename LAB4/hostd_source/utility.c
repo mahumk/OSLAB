@@ -3,7 +3,7 @@
  *
  * Copyright (C) 2015, <GROUP MEMBERS>
  * All rights reserved.
- * 
+ *
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,7 +21,32 @@
 //      ...
 // }
 
-// void load_dispatch(char *dispatch_file, node_t *queue)
-// {
-//      ...
-// }
+/*open the file and load each process into a proc struct and add
+it to the general queue*/
+void load_dispatch(char *dispatch_file, node_t *queue, process tempProc){
+    //open the file
+    FILE *fp = fopen(dispatch_file,"r");
+    char buff[256];
+    while(fgets(buff, 256, (FILE)*fp) != NULL){
+        char * token = strtok(buff, ",\n");
+        tempProc.arrivalTime = atoi(token);
+        token = strtok(NULL, ",\n");
+        tempProc.priority = atoi(token);
+        token = strtok(NULL, ",\n");
+        tempProc.processTime = atoi(token);
+        token = strtok(NULL, ",\n");
+        tempProc.memBytes= atoi(token);
+        token = strtok(NULL, ",\n");
+        tempProc.resource.printers = atoi(token);
+        token = strtok(NULL, ",\n");
+        tempProc.resource.scanners = atoi(token);
+        token = strtok(NULL, ",\n");
+        tempProc.resource.modems = atoi(token);
+        token = strtok(NULL, ",\n");
+        tempProc.resource.cds = atoi(token);
+        tempProc.pid = 0;
+        tempProc.memAddress = 0;
+
+        push(queue, tempProc);
+    }
+}
