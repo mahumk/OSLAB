@@ -11,15 +11,16 @@
 
 // Define your utility functions here, you will likely need to add more...
 
-// int alloc_mem(resources res, int size)
-// {
-//      ...
-// }
+int alloc_mem(resources res, int size){
 
-// free_mem(resources res, int index, int size)
-// {
-//      ...
-// }
+}
+
+void free_mem(resources res, int index, int size){
+    for(int i = index; index < size; i++){
+        res.printers = 0;
+        res.
+    }
+}
 
 /*open the file and load each process into a proc struct and add
 it to the general queue*/
