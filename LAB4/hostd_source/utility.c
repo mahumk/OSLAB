@@ -50,4 +50,5 @@ void load_dispatch(char *dispatch_file, node_t *queue, process tempProc){
 
         push(queue, tempProc);
     }
+    fclose(fp);
 }

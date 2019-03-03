@@ -29,7 +29,7 @@ void push(node_t *queue, proc process){
 proc pop(node_t *queue){
     //check if queue is empty
     if(queue->next == NULL){
-        return -1;
+        return NULL;
     }
     //grab the first item in line
     proc popped = queue->next->process;
