@@ -1,7 +1,7 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -std=gnu99
 LFLAGS =
-LIBS = 
+LIBS = utility.h queue.h hostd.h 
 SOURCES = hostd.c utility.c queue.c sigtrap.c
 OBJECTS = $(subst .c,.o,$(SOURCES))
 EXE = process hostd

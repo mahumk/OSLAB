@@ -25,22 +25,25 @@
 #define CDS 2
 
 // Put global environment variables here
-proc job;
+process job;
 resources res;
 
-node_t * jobQueue;
-node_t * runtime;
-node_t * priority1;
-node_t * priority2;
-node_t * priority3;
+node_t *jobQueue = NULL;
+node_t * runtime = NULL;
+node_t * priority1 = NULL;
+node_t * priority2 = NULL;
+node_t * priority3 = NULL;
+
 // Define functions declared in hostd.h here
+void print_process(process proc);
 
-int main(int argc, char *argv[]){
+int main(){
     // ==================== YOUR CODE HERE ==================== //
-    char dispatchlist = "dispatchlist.txt";
-
-    //assigning Resources
-    res = {PRINTERS, SCANNERS, MODEMS, CDS};
+    //assigning MAX Resources
+    res.printers= PRINTERS;
+    res.scanners = SCANNERS;
+    res.modems = MODEMS;
+    res.cds = CDS;
 
     //reserving space for queues
     jobQueue = malloc(sizeof(node_t));
@@ -56,10 +59,15 @@ int main(int argc, char *argv[]){
     priority2->next = NULL;
     priority3->next = NULL;
 
+
     // Load the dispatchlist
     // Add each process structure instance to the job dispatch list queue
-    load_dispatch(dispatchlist, jobQueue, job);
+    load_dispatch("dispatchlist.txt", jobQueue, job);
 
+
+    //initialize the memory
+    init_mem();
+    
     // Iterate through each item in the job dispatch list, add each process
     // to the appropriate queues
     while(jobQueue->next != NULL){
@@ -67,17 +75,20 @@ int main(int argc, char *argv[]){
 
         if(job.priority >2){
             push(priority3, job);
+            printf("%s\n", "3");
         }else if(job.priority >1){
             push(priority2, job);
+            printf("%s\n", "2");
         }else if(job.priority >0){
             push(priority1, job);
+            printf("%s\n", "1");
         }else{
             push(runtime, job);
+            printf("%s\n", "0");
         }
+    }
 
-        //iterate to next job
-        jobQueue = jobQueue->next;
-    }    
+    //Allocate memory for as many processes
 
     // Allocate the resources for each process before it's executed
 

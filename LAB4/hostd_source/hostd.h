@@ -9,10 +9,10 @@
 #define HOSTD_H_
 
 // Include any relevant data structures here thay may be needed
-
+#include "queue.h"
 // Include any relevant functions declarations here they must start with the
 // extern keyword such as in the following example:
-extern void print_process(proc process);
+extern void print_process(process proc);
 
 
 #endif /* HOSTD_H_ */

@@ -12,7 +12,7 @@
 // Define your FIFO queue functions here, these will most likely be the
 // push and pop functions that you declared in your header file
 
-void push(node_t *queue, proc process){
+void push(node_t *queue, process proc){
     node_t *cur = queue;
     //go to the last item in line
     while(cur->next != NULL){
@@ -21,18 +21,18 @@ void push(node_t *queue, proc process){
     //set the end of the line to the new node
     cur->next = (node_t*)malloc(sizeof(node_t));
     //set the number
-    cur->next->process = num;
+    cur->next->proc = proc;
     //set the next item to come into the end of the line to be NULL
     cur->next->next = NULL;
 }
 
-proc pop(node_t *queue){
+process pop(node_t *queue){
     //check if queue is empty
     if(queue->next == NULL){
-        return NULL;
+        exit(0);
     }
     //grab the first item in line
-    proc popped = queue->next->process;
+    process popped = queue->next->proc;
     node_t *temp = queue->next; //cur
     //get rid of the first item
     free(temp);
