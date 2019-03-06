@@ -37,7 +37,7 @@ node_t * priority3 = NULL;
 // Define functions declared in hostd.h here
 void print_process(process proc);
 
-int main(){
+int main(int argc, char *argv[]){
     // ==================== YOUR CODE HERE ==================== //
     //assigning MAX Resources
     res.printers= PRINTERS;
@@ -93,8 +93,13 @@ int main(){
         //store in memory if possible
         if((address = alloc_mem(job.memBytes, 0, &res)) != -1){
             job.memAddress = address;
+        }else{
+            //no available memory so run to free memory
+            run_process(runtime, runtime, argv);
         }
-        printf("%d %d\n", job.arrivalTime, job.memAddress);
+        //run if no problems
+        run_process(runtime, runtime, argv);
+
         runtime = runtime->next;
     }
 
@@ -107,4 +112,73 @@ int main(){
     // Repeat until all processes have been executed, all queues are empty
 
     return EXIT_SUCCESS;
+}
+
+void run_process(node_t * pullQueue, node_t * pushQueue, char *argv[]){
+    int stat;
+    //get the job to be run
+    job = pop(pullQueue);
+
+    pid_t pid;
+    fork();
+    pid = getpid();
+    job.pid = (int) pid;
+
+    if(pid < (pid_t) 0){
+        stat = -1;
+        exit(1);
+    }
+
+    if(pid == (pid_t) 0){ //child runs sigtrap
+        execv("./process", argv);
+
+    }else{ //parent
+        //if priority is runtime then run until the job is done
+        if(job.priority == 0){
+            printf("%s %d\n","hi", job.pid);
+            //stop the process
+            sleep(job.processTime);
+            printf("%s %d\n","a", job.pid);
+            kill(job.pid, SIGINT);
+            printf("%s %d\n","b", job.pid);
+            waitpid(job.pid, &stat, 0);
+            printf("%s %d\n","c", job.pid);
+            //free from memory
+            free_mem(&res, job.memAddress, job.memBytes);
+            printf("%s\n","free");
+        }else{
+            //check if not paused
+            if(job.suspended == 0){
+                sleep(1); //run for 1s
+                job.processTime--;
+                //update run time and priority
+                if(job.priority == 1 || job.priority ==2){
+                    job.priority++;
+                }else if(job.priority == 3){
+                    job.priority = 3;
+                }
+                //suspend job
+                kill(job.pid, SIGTSTP);
+                job.suspended = 1;
+                //push to lower queue
+                push(pushQueue, job);
+
+            }else{ //if suspended
+                kill(job.pid, SIGCONT);
+                job.suspended = 0;
+            }
+            if(job.processTime <=0){
+                //terminate signal if process time done
+                kill(job.pid, SIGINT);
+                waitpid(job.pid, &stat, 0);
+
+                //free memory and resources when done
+                free_mem(&res, job.memAddress, job.memBytes);
+                free_resources(&res, job);
+            }
+
+        }
+
+
+    }
 }

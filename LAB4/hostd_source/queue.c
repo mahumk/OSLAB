@@ -23,9 +23,7 @@ void push(node_t *queue, process proc){
     //set the number
     cur->next->proc = proc;
     //set the next item to come into the end of the line to be NULL
-    cur->next->next = NULL;
-    printf("%s\n", "c");
-    
+    cur->next->next = NULL;    
 }
 
 process pop(node_t *queue){

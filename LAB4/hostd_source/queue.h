@@ -35,6 +35,7 @@ typedef struct {
     int pid;
     int memAddress;
     int allocated;
+    int suspended;
 } process;
 
 

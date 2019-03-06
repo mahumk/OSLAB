@@ -14,5 +14,6 @@
 // extern keyword such as in the following example:
 extern void print_process(process proc);
 
+extern void run_process(node_t * pullQueue, node_t * pushQueue, char *argv[]);
 
 #endif /* HOSTD_H_ */

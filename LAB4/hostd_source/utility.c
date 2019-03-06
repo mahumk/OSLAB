@@ -29,12 +29,6 @@ int alloc_mem(int size, int reserve, resources *res){
     int available=0;
 
     reserved = reserve;
-    //check if real time
-    // if(proc.priority>0){
-    //     reserved = 64;
-    // }else{
-    //     reserved = 0;
-    // }
 
     //check how much memory is available
     for(int i = reserved+1; i < MEMORY && available<size; i++){
@@ -66,15 +60,15 @@ int alloc_mem(int size, int reserve, resources *res){
 }
 
 //use the resources
-int alloc_resources(resources res, process proc){
+int alloc_resources(resources *res, process proc){
     //check if reserved in memory
     if(proc.memAddress != -1){
         //check for enough resources
-        if(res.printers>0 && res.scanners >0 && res.modems>0 && res.cds>0){
-            res.printers -=proc.printers;
-            res.scanners -= proc.scanners;
-            res.modems -= proc.modems;
-            res.cds -= proc.cds;
+        if(res->printers>0 && res->scanners >0 && res->modems>0 && res->cds>0){
+            res->printers -=proc.printers;
+            res->scanners -= proc.scanners;
+            res->modems -= proc.modems;
+            res->cds -= proc.cds;
             return 1;
         }else{
             return 0;
@@ -85,18 +79,18 @@ int alloc_resources(resources res, process proc){
 }
 
 //clear memory
-void free_mem(resources res, int index, int size){
+void free_mem(resources *res, int index, int size){
     for(int i = index; i < size; i++){
-        res.mem_avail[i] = 0;
+        res->mem_avail[i] = 0;
     }
 }
 
 //reset all the resources
-void free_resources(resources res){
-    res.printers= PRINTERS;
-    res.scanners = SCANNERS;
-    res.modems = MODEMS;
-    res.cds = CDS;
+void free_resources(resources *res, process proc){
+    res->printers += proc.printers;
+    res->scanners += proc.scanners;
+    res->modems += proc.modems;
+    res->cds += proc.cds;
 }
 
 
@@ -133,6 +127,7 @@ void load_dispatch(char *dispatch_file, node_t *queue, process tempProc){
         tempProc.pid = 0;
         tempProc.memAddress = -1;
         tempProc.allocated = 0;
+        tempProc.suspended = 0;
 
         //push into general queue
         push(queue, tempProc);
