@@ -16,7 +16,7 @@ typedef struct {
     int scanners;
     int modems;
     int cds;
-    int mem_avail[MEMORY];
+    int *mem_avail[MEMORY];
 } resources;
 
 
@@ -34,6 +34,7 @@ typedef struct {
     int cds;
     int pid;
     int memAddress;
+    int allocated;
 } process;
 
 

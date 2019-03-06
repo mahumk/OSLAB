@@ -59,20 +59,18 @@ int main(){
     priority2->next = NULL;
     priority3->next = NULL;
 
-
     // Load the dispatchlist
     // Add each process structure instance to the job dispatch list queue
     load_dispatch("dispatchlist.txt", jobQueue, job);
 
 
     //initialize the memory
-    init_mem();
-    
+    init_mem(&res);
+
     // Iterate through each item in the job dispatch list, add each process
     // to the appropriate queues
     while(jobQueue->next != NULL){
         job = pop(jobQueue);
-
         if(job.priority >2){
             push(priority3, job);
             printf("%s\n", "3");
@@ -89,6 +87,16 @@ int main(){
     }
 
     //Allocate memory for as many processes
+    while(runtime->next != NULL){
+        job = runtime->next->proc;
+        int address;
+        //store in memory if possible
+        if((address = alloc_mem(job.memBytes, 0, &res)) != -1){
+            job.memAddress = address;
+        }
+        printf("%d %d\n", job.arrivalTime, job.memAddress);
+        runtime = runtime->next;
+    }
 
     // Allocate the resources for each process before it's executed
 

@@ -16,7 +16,7 @@ void push(node_t *queue, process proc){
     node_t *cur = queue;
     //go to the last item in line
     while(cur->next != NULL){
-        cur= cur->next;
+        cur = cur->next;
     }
     //set the end of the line to the new node
     cur->next = (node_t*)malloc(sizeof(node_t));
@@ -24,6 +24,8 @@ void push(node_t *queue, process proc){
     cur->next->proc = proc;
     //set the next item to come into the end of the line to be NULL
     cur->next->next = NULL;
+    printf("%s\n", "c");
+    
 }
 
 process pop(node_t *queue){
