@@ -20,6 +20,7 @@ extern void init_mem(resources *res);
 // return the index where the memory was allocated at
 extern int alloc_mem(int size, int reserve, resources *res);
 
+/*Allocates resources to a process*/
 extern int alloc_resources(resources *res, process proc);
 
 // Function to free the allocated contiguous chunk of memory in your resources
@@ -27,6 +28,15 @@ extern int alloc_resources(resources *res, process proc);
 // size (amount of memory allocated) as arguments
 extern void free_mem(resources *res, int index, int size);
 
+
+// Clears all the memory
+extern void clear_mem(resources *res);
+
+//Gives back all the Resources
+extern void reset_resources(resources *res);
+
+/* Returns back the resources that were used by a process
+*/
 extern void free_resources(resources *res, process proc);
 
 // Function to parse the file and initialize each process structure and add

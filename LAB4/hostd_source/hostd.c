@@ -33,6 +33,7 @@ node_t * runtime = NULL;
 node_t * priority1 = NULL;
 node_t * priority2 = NULL;
 node_t * priority3 = NULL;
+node_t * tmpQueue = NULL;
 
 // Define functions declared in hostd.h here
 void print_process(process proc);
@@ -51,6 +52,7 @@ int main(int argc, char *argv[]){
     priority1 = malloc(sizeof(node_t));
     priority2 = malloc(sizeof(node_t));
     priority3 = malloc(sizeof(node_t));
+    tmpQueue = malloc(sizeof(node_t));
 
     //point to start of queue
     jobQueue->next = NULL;
@@ -58,6 +60,7 @@ int main(int argc, char *argv[]){
     priority1->next = NULL;
     priority2->next = NULL;
     priority3->next = NULL;
+    tmpQueue->next = NULL;
 
     // Load the dispatchlist
     // Add each process structure instance to the job dispatch list queue
@@ -71,7 +74,7 @@ int main(int argc, char *argv[]){
     // to the appropriate queues
     while(jobQueue->next != NULL){
         job = pop(jobQueue);
-        if(job.priority >2){
+        if(job.priority ==3){
             push(priority3, job);
         }else if(job.priority >1){
             push(priority2, job);
@@ -83,109 +86,160 @@ int main(int argc, char *argv[]){
     }
 
     int address, allocated;
+    process *tmpjob;
 
     //Allocate memory for as many runtime processes as possible and run
     while(runtime->next != NULL){
-        job = runtime->next->proc;
+        tmpjob = &runtime->next->proc;
 
         //store in memory if possible
-        if((address = alloc_mem(job.memBytes, 0, &res)) != -1){
-            job.memAddress = address;
+        if((address = alloc_mem(tmpjob->memBytes, 0, &res)) != -1){
+            tmpjob->memAddress = address;
         }else{
             //no available memory so run to free memory
             run_process(runtime, runtime, argv);
         }
         //run if no problems
         run_process(runtime, runtime, argv);
-
-        printf("%d Address: %d\n",job.arrivalTime, job.memAddress);
     }
-    int i=1;
+
+    clear_mem(&res);
     while(priority1->next != NULL){
-        job = priority1->next->proc;
+        tmpjob = &priority1->next->proc;
 
-        address = alloc_mem(job.memBytes, 64, &res);
-        allocated = alloc_resources(&res, job);
-        //store in memory and reserve resources if possible
-        if(address != -1 && allocated != 0){
-            job.memAddress = address;
-            job.allocated = allocated;
+        address = alloc_mem(tmpjob->memBytes, 64, &res);
+        allocated = alloc_resources(&res, *tmpjob);
+
+        //store in memory if possible
+        if(address != -1){
+            tmpjob->memAddress = address;
+            //reserve resources if availab;e
+            if(allocated != 0){
+                tmpjob->allocated = allocated;
+
+                //push into queue to be run and rmv from this queue
+                push(tmpQueue,*tmpjob);
+                pop(priority1);
+            }else{
+                //if out of resources run whatever is in the runnable queue to free resources/memory
+                while((allocated = alloc_resources(&res, *tmpjob)) == 0){
+                    run_process(tmpQueue, priority2, argv);
+                }
+                //reserve resources for new process
+                tmpjob->allocated = allocated;
+
+                //yeet into queue to be run and rmv from this queue
+                push(tmpQueue,*tmpjob);
+                pop(priority1);
+
+                //if it's the last item to be run the run
+                if(tmpQueue->next->next == NULL && priority1->next == NULL){
+                    run_process(tmpQueue, priority2, argv);
+                }
+            }
         }else{
-            //no available memory so run to free memory
-            // run_process(priority1, priority2, argv);
-            // printf("Num items Q1: %d\n", i);
+            run_process(tmpQueue, priority2, argv);
         }
-        run_process(priority1, priority2, argv);
-        printf("Num items Q1: %d\n", i);
-        i++;
     }
 
-    // Repeat until all processes have been executed, all queues are empty
-    i=1;
-    while(priority1->next != NULL){
-        run_process(priority1, priority2, argv);
-        printf("Num items LEFTOVER Q1: %d\n", i);
-        i++;
-    }
+    clear_mem(&res);
 
-    i=1;
     while(priority2->next != NULL){
-        job = priority2->next->proc;
+        tmpjob = &priority2->next->proc;
 
-        address = alloc_mem(job.memBytes, 64, &res);
-        allocated = alloc_resources(&res, job);
-        //store in memory and reserve resources if possible
-        if(address != -1 && allocated != 0){
-            job.memAddress = address;
-            job.allocated = allocated;
+        address = alloc_mem(tmpjob->memBytes, 64, &res);
+        allocated = alloc_resources(&res, *tmpjob);
+
+        //store in memory if possible
+        if(address != -1){
+            tmpjob->memAddress = address;
+            //reserve resources if availab;e
+            if(allocated != 0){
+                tmpjob->allocated = allocated;
+                //push into queue to be run and rmv from this queue
+                push(tmpQueue,*tmpjob);
+                pop(priority2);
+            }else{
+                //if out of resources run whatever is in the runnable queue to free resources/memory
+                while((allocated = alloc_resources(&res, *tmpjob)) == 0){
+                    run_process(tmpQueue, priority3, argv);
+                }
+
+                tmpjob->allocated = allocated;
+
+                //yeet into queue to be run and rmv from this queue
+                push(tmpQueue,*tmpjob);
+                pop(priority2);
+
+
+            }
+            //if it's the last item to be run the run
+            if(tmpQueue->next->next == NULL && priority2->next == NULL){
+                //printf("RUNNING2222: %d\n", tmpQueue->next->proc.arrivalTime);
+                run_process(tmpQueue, priority3, argv);
+            }
         }else{
-            //no available memory so run to free memory
-            // run_process(priority2, priority3, argv);
-            // printf("Num items Q2: %d\n", i);
+            if(tmpQueue->next->next != NULL){
+                run_process(tmpQueue, priority3, argv);
+            }else{
+                push(priority2, pop(priority2));
+                clear_mem(&res);
+            }
         }
-        run_process(priority2, priority3, argv);
-        printf("Num items Q2: %d\n", i);
-        i++;
     }
-
-    // Repeat until all processes have been executed, all queues are empty
-    i=1;
-    while(priority2->next != NULL){
-        run_process(priority2, priority3, argv);
-        printf("Num items LEFTOVER Q2: %d\n", i);
-        i++;
-    }
-
-    i=1;
+    clear_mem(&res);
     while(priority3->next != NULL){
-        job = priority3->next->proc;
+        tmpjob = &priority3->next->proc;
 
-        address = alloc_mem(job.memBytes, 64, &res);
-        allocated = alloc_resources(&res, job);
-        //store in memory and reserve resources if possible
-        if(address != -1 && allocated != 0){
-            job.memAddress = address;
-            job.allocated = allocated;
+        address = alloc_mem(tmpjob->memBytes, 64, &res);
+        allocated = alloc_resources(&res, *tmpjob);
+
+        //store in memory if possible
+        if(address != -1){
+            tmpjob->memAddress = address;
+            //reserve resources if availab;e
+            if(allocated != 0){
+                tmpjob->allocated = allocated;
+                //push into queue to be run and rmv from this queue
+                push(tmpQueue,*tmpjob);
+                pop(priority3);
+            }else{
+                //if out of resources run whatever is in the runnable queue to free resources/memory
+                while((allocated = alloc_resources(&res, *tmpjob)) == 0 && tmpQueue->next->next != NULL){
+                    run_process(tmpQueue, priority3, argv);
+                }
+                //if still not enough resources and nothing to run
+                if(allocated == 0){
+                    reset_resources(&res);
+                    allocated = alloc_resources(&res, *tmpjob);
+                }
+                tmpjob->allocated = allocated;
+
+                //yeet into queue to be run and rmv from this queue
+                push(tmpQueue,*tmpjob);
+                pop(priority3);
+
+
+            }
+            //if it's the last item to be run the run
+            if(tmpQueue->next->next == NULL && priority3->next == NULL){
+                run_process(tmpQueue, priority3, argv);
+            }
         }else{
-            //no available memory so run to free memory
-            // run_process(priority3, priority3, argv);
-            // printf("Num items Q3: %d\n", i);
+            if(tmpQueue->next->next != NULL){
+                run_process(tmpQueue, priority3, argv);
+            }else{
+                push(priority3, pop(priority3));
+                clear_mem(&res);
+            }
         }
-        run_process(priority3, priority3, argv);
-        printf("Num items Q3: %d\n", i);
-        i++;
     }
 
-    // Repeat until all processes have been executed, all queues are empty
-    i=1;
-    while(priority3->next != NULL){
-        run_process(priority3, priority3, argv);
-        printf("Num items LEFTOVER Q3: %d\n", i);
-        i++;
-    }
-
-    printf("%s\n", "The End");
     return EXIT_SUCCESS;
+}
+
+void print_process(process proc){
+    printf("Arrival Time: %d Priority: %d Time Left: %d Size: %dbytes Printers: %d Scanners: %d Modems: %d CDs: %d\n", proc.arrivalTime, proc.priority, proc.processTime, proc.memBytes, proc.printers, proc.scanners, proc.modems, proc.cds);
 }
 
 // Allocate memory and resources for each process before it's executed
@@ -193,25 +247,28 @@ int main(int argc, char *argv[]){
 // Perform the appropriate signal handling / resource allocation and de-alloaction
 void run_process(node_t * pullQueue, node_t * pushQueue, char *argv[]){
     int stat;
-    process *proc;
-    process popProc;
-    //get the job to be run
-    popProc = pop(pullQueue);
-    proc = &popProc;
-
     pid_t pid;
 
+    process *proc;
+    process popjob;
+    popjob = pop(pullQueue);
+    proc = &popjob;
+    //create a parent/child process
     pid = fork();
     proc->pid = (int) pid;
 
+    //make sure the process created successfully
     if(pid < (pid_t) 0){
         stat = -1;
         exit(1);
     }
 
     if(pid == 0){ //child runs sigtrap
+
         execv("./process", argv);
     }else{ //parent
+        print_process(*proc);
+
         //if priority is runtime then run until the job is done
         if(proc->priority == 0){
             //stop the process
@@ -224,87 +281,52 @@ void run_process(node_t * pullQueue, node_t * pushQueue, char *argv[]){
 
         }else{
             //check if not paused
-            if(proc->suspended == 0){
+            if(proc->paused == 0){
                 //run for 1s
                 sleep(1);
                 proc->processTime--;
-                printf("PID: %d Time: %d\n",proc->pid, proc->processTime);
                 //suspend job
                 kill(proc->pid, SIGTSTP);
-                proc->suspended = 1;
-
-                //update run time and priority
-                if(proc->priority == 1 || proc->priority ==2){
-                    proc->priority++;
-                    //reset
-                    proc->pid = 0;
-                    proc->memAddress = -1;
-                    proc->allocated = 0;
-                }else if(proc->priority == 3){
-                    proc->priority = 3;
-                    proc->pid = 0;
-                    proc->memAddress = -1;
-                    proc->allocated = 0;
-                }
-
-                //push to lower queue
-                push(pushQueue, *proc);
-                printf("%s\n","Push to next priority");
-
-                if(proc->processTime <=1){
-                    //terminate signal if process time done
-                    kill(proc->pid, SIGINT);
-                    waitpid(proc->pid, &stat, 0);
-                    pop(pushQueue);
-
-                    //free memory and resources when done
-                    free_mem(&res, proc->memAddress, proc->memBytes);
-                    free_resources(&res, *proc);
-                    printf("%s\n","free");
-                }
+                proc->paused = 1;
 
             }else{
-                //resume if suspended
+                //resume if paused
                 kill(proc->pid, SIGCONT);
-                proc->suspended = 0;
-
                 //run for 1s
                 sleep(1);
                 proc->processTime--;
-                printf("PID: %d Time: %d\n",proc->pid, proc->processTime);
-
                 //suspend job
                 kill(proc->pid, SIGTSTP);
+                proc->paused = 1;
 
-                //update run time and priority
-                if(proc->priority == 1 || proc->priority ==2){
-                    proc->priority++;
-                    //reset
-                    proc->pid = 0;
-                    proc->memAddress = -1;
-                    proc->allocated = 0;
-                }else if(proc->priority == 3){
-                    proc->priority = 3;
-                    proc->pid = 0;
-                    proc->memAddress = -1;
-                    proc->allocated = 0;
-                }
+                printf("cont|PID: %d \n",proc->pid);
+            }
+            //free mem & resources after runned for 1s
+            free_mem(&res, proc->memAddress, proc->memBytes);
+            free_resources(&res, *proc);
 
-                //push to lower queue
+            //update run time and priority
+            if(proc->priority == 1){
+                proc->priority++;
+                printf("%s\n","Push to priority2");
+            }else if(proc->priority ==2){
+                proc->priority++;
+                printf("%s\n","Push to priority3");
+            }else if(proc->priority == 3){
+                printf("%s\n","Push priority 3 AGAIN");
+            }
+            //terminate signal if process time done
+            if(proc->processTime <= 1){
+                sleep(1);
+                proc->processTime--;
+                kill(proc->pid, SIGINT);
+                //waitpid(proc->pid, &stat, 0);
+
+                pop(pushQueue);
+                printf("%s\n","free");
+            }else{
                 push(pushQueue, *proc);
-                printf("%s\n","CONTINUES Push to next priority");
-
-                if(proc->processTime <=1){
-                    //terminate signal if process time done
-                    kill(proc->pid, SIGINT);
-                    waitpid(proc->pid, &stat, 0);
-                    pop(pushQueue);
-
-                    //free memory and resources when done
-                    free_mem(&res, proc->memAddress, proc->memBytes);
-                    free_resources(&res, *proc);
-                    printf("%s\n","free");
-                }
+                printf("%s\n","POOSHED");
             }
 
         }

@@ -36,6 +36,7 @@ int alloc_mem(int size, int reserve, resources *res){
         if(res->mem_avail[i-1] == 0 && res->mem_avail[i] == 0 ){
             available++;
         }
+        //printf("Memory Before[%d]: %d\n",i, res->mem_avail[i]);
     }
 
     //check if more empty memory than whats needed
@@ -61,28 +62,59 @@ int alloc_mem(int size, int reserve, resources *res){
 
 //use the resources
 int alloc_resources(resources *res, process proc){
-    //check if reserved in memory
-    if(proc.memAddress != -1){
-        //check for enough resources
-        if(res->printers>0 && res->scanners >0 && res->modems>0 && res->cds>0){
-            res->printers -=proc.printers;
-            res->scanners -= proc.scanners;
-            res->modems -= proc.modems;
-            res->cds -= proc.cds;
-            return 1;
-        }else{
+
+    //check for enough resources
+    if(res->printers>0 && res->scanners >0 && res->modems>0 && res->cds>0){
+        if((res->printers - proc.printers) < 0){
             return 0;
+        }else{
+            res->printers -=proc.printers;
         }
+
+        if(res->scanners - proc.scanners < 0){
+            return 0;
+        }else{
+            res->scanners -= proc.scanners;
+        }
+
+        if(res->modems - proc.modems < 0){
+            return 0;
+        }else{
+            res->modems -= proc.modems;
+        }
+
+        if(res->cds - proc.cds < 0){
+            return 0;
+        }else{
+            res->cds -= proc.cds;
+        }
+
+        return 1;
     }else{
         return 0;
     }
+
 }
 
 //clear memory
+void clear_mem(resources *res){
+    for(int i = 0; i < MEMORY; i++){
+        res->mem_avail[i] = 0;
+    }
+}
+
+//clear memory section
 void free_mem(resources *res, int index, int size){
     for(int i = index; i < size; i++){
         res->mem_avail[i] = 0;
     }
+}
+
+void reset_resources(resources *res){
+    res->printers = 2;
+    res->scanners = 1;
+    res->modems = 1;
+    res->cds = 2;
 }
 
 //reset all the resources
@@ -127,7 +159,7 @@ void load_dispatch(char *dispatch_file, node_t *queue, process tempProc){
         tempProc.pid = 0;
         tempProc.memAddress = -1;
         tempProc.allocated = 0;
-        tempProc.suspended = 0;
+        tempProc.paused = 0;
 
         //push into general queue
         push(queue, tempProc);
