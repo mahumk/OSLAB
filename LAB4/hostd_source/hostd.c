@@ -299,7 +299,6 @@ void run_process(node_t * pullQueue, node_t * pushQueue, char *argv[]){
                 kill(proc->pid, SIGTSTP);
                 proc->paused = 1;
 
-                printf("cont|PID: %d \n",proc->pid);
             }
             //free mem & resources after runned for 1s
             free_mem(&res, proc->memAddress, proc->memBytes);
@@ -308,25 +307,19 @@ void run_process(node_t * pullQueue, node_t * pushQueue, char *argv[]){
             //update run time and priority
             if(proc->priority == 1){
                 proc->priority++;
-                printf("%s\n","Push to priority2");
             }else if(proc->priority ==2){
                 proc->priority++;
-                printf("%s\n","Push to priority3");
             }else if(proc->priority == 3){
-                printf("%s\n","Push priority 3 AGAIN");
+                proc->priority=3;
             }
             //terminate signal if process time done
-            if(proc->processTime <= 1){
+            if(proc->processTime <= 0){
                 sleep(1);
                 proc->processTime--;
                 kill(proc->pid, SIGINT);
-                //waitpid(proc->pid, &stat, 0);
 
-                pop(pushQueue);
-                printf("%s\n","free");
             }else{
                 push(pushQueue, *proc);
-                printf("%s\n","POOSHED");
             }
 
         }

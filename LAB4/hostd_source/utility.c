@@ -110,6 +110,7 @@ void free_mem(resources *res, int index, int size){
     }
 }
 
+//reset resources
 void reset_resources(resources *res){
     res->printers = 2;
     res->scanners = 1;
@@ -117,7 +118,7 @@ void reset_resources(resources *res){
     res->cds = 2;
 }
 
-//reset all the resources
+//free all the resources
 void free_resources(resources *res, process proc){
     res->printers += proc.printers;
     res->scanners += proc.scanners;
