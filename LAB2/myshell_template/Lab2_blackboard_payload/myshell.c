@@ -19,9 +19,11 @@
 // Put global environment variables here
 
 //Define functions declared in myshell.h here
-void print(char **string, int num){
-    for(int i=0; i <=num; i++){
-        printf("Args Out: %s\n", &&string[i]);
+FILE * stream(FILE * f){
+    if(f != NULL){
+        return f;
+    }else{
+        return stdin;
     }
 }
 int main(int argc, char *argv[]){
@@ -30,22 +32,22 @@ int main(int argc, char *argv[]){
     char command[BUFFER_LEN] = {0};
     char args[BUFFER_LEN][BUFFER_LEN] = {{0}};
     char cwd[1024];
-    // Parse the commands provided using argc and argv
-    if(argc >=1){
-        file file;
-        if(strstr(argv[1], ".sh") != NULL) {
-            fopen();
+    FILE *fp;
+
+    //hecks if shell script has been provided
+    if(argc >= 2){
+        if(strstr(argv[1], ".sh") != NULL){
+            fp = fopen(argv[1], "r");
         }
     }
 
 
-    
     printf("%s$ ", getcwd(cwd, sizeof(cwd)));
 
-    
-    
+
+
     // Perform an infinite loop getting command input from users
-    while (fgets(buffer, BUFFER_LEN, stdin) != NULL){
+    while (fgets(buffer, BUFFER_LEN, stream(fp)) != NULL){
     // Perform string tokenization to get the command and argument
         //get the command
         char* token = strtok(buffer, " ");
@@ -104,9 +106,13 @@ int main(int argc, char *argv[]){
             }
         }
         else if(strcmp(command, "echo") == 0 || strcmp(command, "echo\n") == 0){
-            print(args, numWords);
-
-            //echoPrint(args, numWords);
+            for(int i=0; i <=numWords; i++){
+                printf("%s ", args[i]);
+            }
+            printf("\n");
+            // for(int i=0; i <=numWords; i++){
+            //     args[i]="";
+            // }
         }
 
         else if (strcmp(command, "pause") == 0 || strcmp(command, "pause\n") == 0){
